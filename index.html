@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Timothy Samodarov</title>
+  <meta name="description" content="Timothy Samodarov: computer science student and AI engineer. Projects and notes.">
+  <link rel="icon" href="data:,">
+  <style>
+:root {
+  --bg: #ffffff;
+  --text: #1a1a1a;
+  --muted: #5c5c5c;
+  --rule: #d9d9d9;
+  --link: #1a4fa0;
+  --code-bg: #f4f4f4;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #161616;
+    --text: #e6e6e6;
+    --muted: #a3a3a3;
+    --rule: #3a3a3a;
+    --link: #8cb4ff;
+    --code-bg: #232323;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 18px/1.6 Georgia, "Times New Roman", serif;
+}
+
+main {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 48px 16px 64px;
+}
+
+h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 4px; }
+h2 {
+  font-size: 1.15rem;
+  font-variant: small-caps;
+  letter-spacing: 0.03em;
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 4px;
+  margin: 40px 0 12px;
+}
+
+p, ul, ol { margin: 0 0 14px; }
+li { margin-bottom: 6px; }
+
+a { color: var(--link); }
+
+.sub { color: var(--muted); margin: 0 0 8px; }
+.links a { margin-right: 16px; }
+
+.back { font-size: 0.95rem; }
+
+.project { margin: 0 0 22px; }
+.project h3 { font-size: 1.05rem; margin: 0; }
+.project .meta { color: var(--muted); font-size: 0.9rem; margin: 0 0 4px; }
+
+.status {
+  border-left: 3px solid var(--rule);
+  padding: 4px 0 4px 14px;
+  color: var(--muted);
+}
+
+code {
+  font: 0.85em Menlo, Consolas, monospace;
+  background: var(--code-bg);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+pre {
+  font: 0.8rem/1.5 Menlo, Consolas, monospace;
+  background: var(--code-bg);
+  padding: 12px;
+  overflow-x: auto;
+  border-radius: 4px;
+}
+
+footer {
+  margin-top: 56px;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+  </style>
+</head>
+<body>
+<main>
+  <h1>Timothy Samodarov</h1>
+  <p class="sub">Computer Science student at De Anza College and Foothill College. AI Engineer at Synopsys.</p>
+  <p class="links">
+    <a href="https://github.com/tdsiar">GitHub</a>
+    <a href="https://www.linkedin.com/in/timothy-samodarov-601a88261/">LinkedIn</a>
+  </p>
+
+  <h2>Projects</h2>
+
+  <div class="project">
+    <h3><a href="projects/myrun.html">LLM Inference Engine in C</a></h3>
+    <p class="meta">C &middot; Aug 2026 to Present</p>
+    <p>A from scratch rebuild of llama2.c, the C program that runs a Llama 2 model one token at a time. My output matches the reference byte for byte.</p>
+  </div>
+
+  <div class="project">
+    <h3><a href="projects/emg-band.html">EMG Voice Agent Band</a></h3>
+    <p class="meta">Python, Arduino, Bluetooth, Claude Agent SDK &middot; Jul 2026 to Sep 2026</p>
+    <p>A wristband prototype that reads forearm muscle signals. A flex wakes a voice agent that does tasks on my Mac and speaks back.</p>
+  </div>
+
+  <div class="project">
+    <h3><a href="projects/morning-paper.html">The Morning Paper</a></h3>
+    <p class="meta">Python, Claude, headless Chrome &middot; Jul 2026 to Sep 2026 &middot; <a href="https://github.com/tdsiar/morning-paper">source</a></p>
+    <p>An open source tool that turns sources I chose into a daily newspaper PDF, edited by a sandboxed LLM. Built to replace my YouTube and X feeds.</p>
+  </div>
+
+  <footer>Plain HTML, hosted on GitHub Pages.</footer>
+</main>
+</body>
+</html>

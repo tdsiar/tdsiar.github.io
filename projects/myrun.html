@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LLM Inference Engine in C</title>
+  <meta name="description" content="A from scratch rebuild of llama2.c inference in C, verified byte for byte against the reference.">
+  <link rel="icon" href="data:,">
+  <style>
+:root {
+  --bg: #ffffff;
+  --text: #1a1a1a;
+  --muted: #5c5c5c;
+  --rule: #d9d9d9;
+  --link: #1a4fa0;
+  --code-bg: #f4f4f4;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #161616;
+    --text: #e6e6e6;
+    --muted: #a3a3a3;
+    --rule: #3a3a3a;
+    --link: #8cb4ff;
+    --code-bg: #232323;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 18px/1.6 Georgia, "Times New Roman", serif;
+}
+
+main {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 48px 16px 64px;
+}
+
+h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 4px; }
+h2 {
+  font-size: 1.15rem;
+  font-variant: small-caps;
+  letter-spacing: 0.03em;
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 4px;
+  margin: 40px 0 12px;
+}
+
+p, ul, ol { margin: 0 0 14px; }
+li { margin-bottom: 6px; }
+
+a { color: var(--link); }
+
+.sub { color: var(--muted); margin: 0 0 8px; }
+.links a { margin-right: 16px; }
+
+.back { font-size: 0.95rem; }
+
+.project { margin: 0 0 22px; }
+.project h3 { font-size: 1.05rem; margin: 0; }
+.project .meta { color: var(--muted); font-size: 0.9rem; margin: 0 0 4px; }
+
+.status {
+  border-left: 3px solid var(--rule);
+  padding: 4px 0 4px 14px;
+  color: var(--muted);
+}
+
+code {
+  font: 0.85em Menlo, Consolas, monospace;
+  background: var(--code-bg);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+pre {
+  font: 0.8rem/1.5 Menlo, Consolas, monospace;
+  background: var(--code-bg);
+  padding: 12px;
+  overflow-x: auto;
+  border-radius: 4px;
+}
+
+footer {
+  margin-top: 56px;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+  </style>
+</head>
+<body>
+<main>
+  <p class="back"><a href="../index.html">Timothy Samodarov</a></p>
+  <h1>LLM Inference Engine in C</h1>
+  <p class="sub">C &middot; Aug 2026 to Present</p>
+
+  <h2>What it is</h2>
+  <p>Andrej Karpathy's <a href="https://github.com/karpathy/llama2.c">llama2.c</a> runs a Llama 2 style language model in one C file, <code>run.c</code>, about 1,000 lines long. I rebuilt it from an empty file as <code>myrun.c</code> (568 lines), without copying, to learn what inference does at the level of memory and arithmetic. That is the work an AI chip has to do in hardware.</p>
+  <p>The test model is <code>stories15M</code>: 15 million parameters, trained on short children's stories.</p>
+
+  <h2>How it works</h2>
+  <ol>
+    <li><strong>Load the weights.</strong> Read the model's config header, then compute each weight matrix's size from it and read the matrices out of one flat file of floats, one allocation each. (The reference maps the file into memory instead.)</li>
+    <li><strong>Load the tokenizer.</strong> Read 32,000 vocabulary pieces and their scores.</li>
+    <li><strong>Run the forward pass for each token.</strong> Look up the token's embedding. Then, for each layer: RMS normalization, the query, key, and value matrix multiplies, rotary position encoding, attention over the cached keys and values, the output projection, and the feed forward block. The last step turns the final vector into 32,000 logits, one score per possible next token.</li>
+    <li><strong>Pick the next token.</strong> Greedy sampling takes the highest logit.</li>
+    <li><strong>Decode.</strong> Turn the token id back into text, including byte fallback tokens such as <code>&lt;0x0A&gt;</code> for a newline.</li>
+  </ol>
+
+  <h2>How I checked it</h2>
+  <p>I used a golden master test. Both programs run greedy decoding on the same model, and <code>diff</code> compares the outputs:</p>
+<pre>./myrun stories15M.bin &gt; mine.txt
+./run   stories15M.bin -t 0 &gt; ref.txt
+diff mine.txt ref.txt</pre>
+  <p>The generated story is identical, character for character. I also compared raw logits at 15 separate steps. They agree to 5 or 6 decimal places.</p>
+
+  <h2>A bug found by bisection</h2>
+  <p>At one point my story drifted from the reference at a single word. I bisected with the token count and found the first difference at step 19: my engine picked token 322, the reference picked 297.</p>
+  <p>Then I printed my logits at that step. They matched the reference (18.970549 against 18.970541), so the forward pass was correct. The only code between a correct logit and a wrong choice was the sampler. The cause was <code>int max_p</code>: an integer holding a float. It cut 18.97 down to 18, so a smaller value (18.29) compared as larger and won. The same line had a second bug: it stored a value where an index belonged. The bug stayed hidden for 19 steps because the truncation only mattered when the top two logits shared a whole number part.</p>
+
+  <h2>Where it stands</h2>
+  <p class="status">The output matches the reference. Next steps: free all memory (checked with <code>leaks</code>), add error checks on file and memory calls, then measure tokens per second and memory use. After that, a roofline analysis of where the time goes, and a simple cycle level model of how the same work would run on dedicated hardware.</p>
+
+  <h2>What I learned</h2>
+  <ul>
+    <li>How a transformer turns weights in memory into the next token, one matrix multiply at a time.</li>
+    <li>Golden master testing, bisection, and <code>lldb</code> for finding where two programs first disagree.</li>
+    <li>To check the instrument before I trust its reading, and to predict a value before I run the code.</li>
+    <li>To keep an index and a value apart. That mistake cost me more time than any other bug.</li>
+  </ul>
+</main>
+</body>
+</html>

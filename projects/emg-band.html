@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EMG Voice Agent Band</title>
+  <meta name="description" content="A wristband prototype that turns forearm muscle signals into commands for a voice agent.">
+  <link rel="icon" href="data:,">
+  <style>
+:root {
+  --bg: #ffffff;
+  --text: #1a1a1a;
+  --muted: #5c5c5c;
+  --rule: #d9d9d9;
+  --link: #1a4fa0;
+  --code-bg: #f4f4f4;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #161616;
+    --text: #e6e6e6;
+    --muted: #a3a3a3;
+    --rule: #3a3a3a;
+    --link: #8cb4ff;
+    --code-bg: #232323;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 18px/1.6 Georgia, "Times New Roman", serif;
+}
+
+main {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 48px 16px 64px;
+}
+
+h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 4px; }
+h2 {
+  font-size: 1.15rem;
+  font-variant: small-caps;
+  letter-spacing: 0.03em;
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 4px;
+  margin: 40px 0 12px;
+}
+
+p, ul, ol { margin: 0 0 14px; }
+li { margin-bottom: 6px; }
+
+a { color: var(--link); }
+
+.sub { color: var(--muted); margin: 0 0 8px; }
+.links a { margin-right: 16px; }
+
+.back { font-size: 0.95rem; }
+
+.project { margin: 0 0 22px; }
+.project h3 { font-size: 1.05rem; margin: 0; }
+.project .meta { color: var(--muted); font-size: 0.9rem; margin: 0 0 4px; }
+
+.status {
+  border-left: 3px solid var(--rule);
+  padding: 4px 0 4px 14px;
+  color: var(--muted);
+}
+
+code {
+  font: 0.85em Menlo, Consolas, monospace;
+  background: var(--code-bg);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+pre {
+  font: 0.8rem/1.5 Menlo, Consolas, monospace;
+  background: var(--code-bg);
+  padding: 12px;
+  overflow-x: auto;
+  border-radius: 4px;
+}
+
+footer {
+  margin-top: 56px;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+  </style>
+</head>
+<body>
+<main>
+  <p class="back"><a href="../index.html">Timothy Samodarov</a></p>
+  <h1>EMG Voice Agent Band</h1>
+  <p class="sub">Python, Arduino, Bluetooth, Claude Agent SDK &middot; Jul 2026 to Sep 2026</p>
+
+  <h2>What it is</h2>
+  <p>A prototype input device. I wear a muscle sensor (EMG) on my forearm. Two quick flexes wake a voice agent. I speak a request, and one flex sends it. The agent does the work on my Mac with tools and answers by voice. A long flex always means stop. There is no phone, no wake word, and no hands.</p>
+
+  <h2>How it works</h2>
+  <ol>
+    <li><strong>Sensor.</strong> A MyoWare 2.0 sensor sends a number 500 times a second, over a USB cable through an Arduino or over Bluetooth through a wireless shield. At 200 samples a second, long flexes broke into pieces, so 500 is the floor.</li>
+    <li><strong>Clean signal.</strong> A notch filter removes 60 Hz hum from house power, which on the cabled setup was louder than the muscle. A baseline tracker follows the slow drift of the electrode gel.</li>
+    <li><strong>Envelope.</strong> The software keeps only the size of the signal and averages recent samples, giving one number for how hard the muscle works.</li>
+    <li><strong>Gestures.</strong> The envelope crossing a threshold becomes a <em>pulse</em> (short), a <em>hold</em> (about one second), or a <em>double</em> (two quick pulses).</li>
+    <li><strong>State machine.</strong> Four states make every decision: idle, wake pending, listening, and agent busy. A wake needs a confirming flex after a beep, so one accidental flex cannot wake it.</li>
+    <li><strong>Agent.</strong> Speech goes to a local Whisper model, then to Claude through the Claude Agent SDK. Claude can open apps, set the volume, take screenshots, and search the web. Long jobs run as background tasks with one hard rule: they can never send anything. They write a draft, and I approve it.</li>
+  </ol>
+  <p>The signal source is a single flag: keyboard, a recorded session, USB, or Bluetooth. Everything above the source is the same. Electrode pads are expensive, so I recorded real muscle once and tuned the detector offline by replaying the recordings. The project has 427 automated tests.</p>
+
+  <h2>Results</h2>
+  <p>Live wake success on my arm went from about 17% to 67% (16 of 24) after I found a phantom gesture: the tail of a double flex was read as a hold, which cancelled the wake it had just started. The full loop then worked end to end, from flex to speech to a Mac action.</p>
+
+  <h2>Where it stands</h2>
+  <p class="status">I stopped the project in September 2026. The sensor sits on the muscles that move the fingers, so typing and reaching make real muscle signal too. One channel that measures only effort cannot reliably tell a deliberate flex from an everyday one. The confirmation step hides the problem but does not solve it. Research bands such as Meta's use 16 channels and learn the shape of a gesture, not just its size.</p>
+
+  <h2>What I learned</h2>
+  <ul>
+    <li>How a raw analog signal becomes a decision: sampling rate, filtering, envelopes, thresholds, and a state machine.</li>
+    <li>To record once and test offline when the hardware is scarce.</li>
+    <li>That a threshold was the wrong layer to tune. The problem was what one channel can physically measure.</li>
+    <li>When to stop, and to write down why.</li>
+  </ul>
+</main>
+</body>
+</html>

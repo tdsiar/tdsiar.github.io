@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Morning Paper</title>
+  <meta name="description" content="An open source tool that turns chosen sources into a daily newspaper PDF, edited by a sandboxed LLM.">
+  <link rel="icon" href="data:,">
+  <style>
+:root {
+  --bg: #ffffff;
+  --text: #1a1a1a;
+  --muted: #5c5c5c;
+  --rule: #d9d9d9;
+  --link: #1a4fa0;
+  --code-bg: #f4f4f4;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #161616;
+    --text: #e6e6e6;
+    --muted: #a3a3a3;
+    --rule: #3a3a3a;
+    --link: #8cb4ff;
+    --code-bg: #232323;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 18px/1.6 Georgia, "Times New Roman", serif;
+}
+
+main {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 48px 16px 64px;
+}
+
+h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 4px; }
+h2 {
+  font-size: 1.15rem;
+  font-variant: small-caps;
+  letter-spacing: 0.03em;
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 4px;
+  margin: 40px 0 12px;
+}
+
+p, ul, ol { margin: 0 0 14px; }
+li { margin-bottom: 6px; }
+
+a { color: var(--link); }
+
+.sub { color: var(--muted); margin: 0 0 8px; }
+.links a { margin-right: 16px; }
+
+.back { font-size: 0.95rem; }
+
+.project { margin: 0 0 22px; }
+.project h3 { font-size: 1.05rem; margin: 0; }
+.project .meta { color: var(--muted); font-size: 0.9rem; margin: 0 0 4px; }
+
+.status {
+  border-left: 3px solid var(--rule);
+  padding: 4px 0 4px 14px;
+  color: var(--muted);
+}
+
+code {
+  font: 0.85em Menlo, Consolas, monospace;
+  background: var(--code-bg);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+pre {
+  font: 0.8rem/1.5 Menlo, Consolas, monospace;
+  background: var(--code-bg);
+  padding: 12px;
+  overflow-x: auto;
+  border-radius: 4px;
+}
+
+footer {
+  margin-top: 56px;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+  </style>
+</head>
+<body>
+<main>
+  <p class="back"><a href="../index.html">Timothy Samodarov</a></p>
+  <h1>The Morning Paper</h1>
+  <p class="sub">Python, Claude, headless Chrome &middot; Jul 2026 to Sep 2026 &middot; <a href="https://github.com/tdsiar/morning-paper">source on GitHub</a> (MIT)</p>
+
+  <h2>What it is</h2>
+  <p>A newspaper for one reader. Every morning it reads only the sources I chose (blogs, YouTube channels, podcasts), has Claude edit them into a broadsheet with a front page and one section per source worth reading, and produces a PDF to print or read with coffee. If nothing good happened, it says so. I built it to replace scrolling YouTube and X.</p>
+
+  <h2>How it works</h2>
+  <ol>
+    <li><strong>Schedule.</strong> A macOS <code>launchd</code> job starts the run at a set time each morning.</li>
+    <li><strong>Fetch.</strong> The fetcher reads each source's feed. A SQLite store remembers what was already printed, so nothing repeats.</li>
+    <li><strong>Edit.</strong> The editor sends the new items to Claude through the Claude Code command line in a sealed mode: no tools, no MCP servers, no user settings, and an empty temporary working folder. The model can write text but cannot read or change anything on the machine.</li>
+    <li><strong>Typeset.</strong> The Markdown result becomes HTML. A sanitizer and a content security policy block all scripts, because the text comes from the internet and from a model. Headless Chrome prints the HTML to PDF.</li>
+    <li><strong>Deliver.</strong> The PDF goes to the printer, to email, or to an archive.</li>
+  </ol>
+  <p>To make it usable by other people, I added a setup wizard, a tool that turns a YouTube page or podcast name into a verified feed, an install script, and a security page that lists everything that touches the network. It has 123 automated tests.</p>
+
+  <h2>Where it stands</h2>
+  <p class="status">It made 55 editions between July 10 and September 23, 2026. On September 23 the editor call timed out three times and the paper fell back to a plain edition. It has been paused since then.</p>
+
+  <h2>What I learned</h2>
+  <ul>
+    <li>To treat a model's output like any untrusted input: limit what it can touch, and sanitize what it returns.</li>
+    <li>To check that the output exists, not just the exit code. One Chrome flag made PDF printing exit successfully while writing no file.</li>
+    <li>That shipping for other people is its own job: defaults, privacy, install, and docs.</li>
+  </ul>
+</main>
+</body>
+</html>
